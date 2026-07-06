@@ -1,0 +1,28 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: apps/units/o_cu_cp/cu_cp/metrics/cu_cp_metrics_producer.cpp  (13 lines)
+//
+// Purpose (plain English):
+//   Part of the O-RAN CU-CP/CU-UP application unit infrastructure layer.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#include "cu_cp_metrics_producer.h"
+#include "cu_cp_metrics.h"
+
+
+using namespace ocudu;
+
+
+void cu_cp_metrics_producer_impl::notify_metrics_report_request(const cu_cp_metrics_report& report)
+{
+  notifier.on_new_metric(cu_cp_metrics_impl(report));
+}

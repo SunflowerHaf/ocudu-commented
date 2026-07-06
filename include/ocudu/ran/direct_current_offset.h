@@ -1,0 +1,141 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/ran/direct_current_offset.h  (87 lines)
+//
+// INTERFACE HEADER — include/ocudu/ran
+// RAN types and utilities (~250 files): the single most widely included tree. Contains everything RAN-specific that is not layer-specific: slot_point and slot_point_extended, ARFCN and frequency helpers, NR band definitions and lookup functions, cell identity types (PCI, NCI, CGI, PLMN, TAC), QoS types (5QI, S-NSSAI), resource block types (PRB, CRB, VRB, BWP), PDSCH/PUSCH/PUCCH resource configuration types, TDD pattern types, HARQ types, MCS tables and helpers, PRACH configuration tables, SSB configuration types, MIMO layer types, subcarrier spacing types, and hundreds of supporting enums and constants drawn directly from 3GPP TS 38.211/212/213/214/321/322/331.
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+#include "ocudu/adt/span.h"
+#include "ocudu/adt/strong_type.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/support/ocudu_assert.h"
+
+
+namespace ocudu {
+
+/// \brief Direct Current (DC) offset, in number of subcarriers. See "txDirectCurrentLocation" in TS 38.331.
+///
+/// The numerology of the active UL/DL BWP is used as a reference to determine the number of subcarriers of the DC
+/// offset.
+/// The DC offset value 0 corresponds to the center of the SCS-Carrier for the numerology of the active UL/DL BWP. The
+/// relation with the TS 38.331 "txDirectCurrentLocation" parameter is, therefore, given by: dc_offset =
+/// txDirectCurrentLocation - 12 * N_RB / 2, where "N_RB" is the number of RBs of the SCS-Carrier.
+/// In case the DC offset falls within the SCS-Carrier boundaries, its value should range between {0,...,12 * N_RB - 1}.
+
+/// \brief Direct Current (DC) offset, in number of subcarriers. See "txDirectCurrentLocation" in TS 38.331.
+///
+/// The numerology of the active UL/DL BWP is used as a reference to determine the number of subcarriers of the DC
+/// offset.
+/// The DC offset value 0 corresponds to the center of the SCS-Carrier for the numerology of the active UL/DL BWP. The
+/// relation with the TS 38.331 "txDirectCurrentLocation" parameter is, therefore, given by: dc_offset =
+/// txDirectCurrentLocation - 12 * N_RB / 2, where "N_RB" is the number of RBs of the SCS-Carrier.
+/// In case the DC offset falls within the SCS-Carrier boundaries, its value should range between {0,...,12 * N_RB - 1}.
+enum class dc_offset_t : int {
+  min          = -static_cast<int>(MAX_NOF_SUBCARRIERS) / 2,
+  center       = 0,
+  max          = static_cast<int>(MAX_NOF_SUBCARRIERS) / 2 - 1,
+  outside      = static_cast<int>(MAX_NOF_SUBCARRIERS) / 2,
+  undetermined = std::numeric_limits<int>::max()
+};
+
+
+namespace dc_offset_helper {
+
+/// \brief Pack the DC offset into a 16-bit unsigned integer used in the RRC and FAPI messages. See
+/// "txDirectCurrentLocation" in TS 38.331.
+/// \return Packed DC offset value. In case the DC offset falls within the SCS-Carrier boundaries, its value should
+/// range between {0,...,12 * carrier_nof_rbs - 1}. In case the DC offset falls outside the SCS-Carrier, its value
+/// is set to 3300. In case of undetermined DC offset, its value is set to 3301.
+
+/// \brief Pack the DC offset into a 16-bit unsigned integer used in the RRC and FAPI messages. See
+/// "txDirectCurrentLocation" in TS 38.331.
+/// \return Packed DC offset value. In case the DC offset falls within the SCS-Carrier boundaries, its value should
+/// range between {0,...,12 * carrier_nof_rbs - 1}. In case the DC offset falls outside the SCS-Carrier, its value
+/// is set to 3300. In case of undetermined DC offset, its value is set to 3301.
+inline uint16_t pack(dc_offset_t offset, unsigned carrier_nof_rbs)
+{
+  if (offset == dc_offset_t::undetermined) {
+    return 3301;
+  }
+
+  // Case where DC offset inside spectrum.
+
+  // Case where DC offset inside spectrum.
+  const int nof_subcarriers = static_cast<int>(NOF_SUBCARRIERS_PER_RB * carrier_nof_rbs);
+  auto      value           = static_cast<std::underlying_type_t<dc_offset_t>>(offset);
+  if (value >= -nof_subcarriers / 2 && value < nof_subcarriers / 2) {
+    return value + nof_subcarriers / 2;
+  }
+
+  // Case DC offset falls outside the spectrum.
+
+  // Case DC offset falls outside the spectrum.
+  return 3300;
+}
+
+/// \brief Checks if the DC position is contained in a CRB interval.
+/// \param[in] offset          DC offset parameter.
+/// \param[in] carrier_nof_rbs Carrier bandwidth in resource blocks.
+/// \param[in] rbs             Resource block allocation.
+/// \return \c true if the DC position is contained within the allocated CRBs. Otherwise \c false.
+
+/// \brief Checks if the DC position is contained in a CRB interval.
+/// \param[in] offset          DC offset parameter.
+/// \param[in] carrier_nof_rbs Carrier bandwidth in resource blocks.
+/// \param[in] rbs             Resource block allocation.
+/// \return \c true if the DC position is contained within the allocated CRBs. Otherwise \c false.
+inline bool is_contained(dc_offset_t offset, unsigned carrier_nof_rbs, crb_interval rbs)
+{
+  if (offset == dc_offset_t::undetermined) {
+    return false;
+  }
+
+  // Case where DC offset inside spectrum.
+
+  // Case where DC offset inside spectrum.
+  const int nof_subcarriers = static_cast<int>(NOF_SUBCARRIERS_PER_RB * carrier_nof_rbs);
+  auto      dc_position     = static_cast<std::underlying_type_t<dc_offset_t>>(offset);
+  if (dc_position >= -nof_subcarriers / 2 && dc_position < nof_subcarriers / 2) {
+    dc_position += nof_subcarriers / 2;
+  }
+
+
+  return rbs.contains(dc_position / NOF_SUBCARRIERS_PER_RB);
+}
+
+/// \brief Checks if the DC position is contained in a CRB interval.
+/// \param[in] dc_position     DC position in subcarriers within the grid relative to PointA.
+/// \param[in] rbs             Resource block allocation.
+/// \return \c true if the DC position is contained within the allocated CRBs. Otherwise \c false.
+
+/// \brief Checks if the DC position is contained in a CRB interval.
+/// \param[in] dc_position     DC position in subcarriers within the grid relative to PointA.
+/// \param[in] rbs             Resource block allocation.
+/// \return \c true if the DC position is contained within the allocated CRBs. Otherwise \c false.
+inline bool is_contained(unsigned dc_position, crb_interval rbs)
+{
+  return rbs.contains(dc_position / NOF_SUBCARRIERS_PER_RB);
+}
+
+
+} // namespace dc_offset_helper
+
+
+} // namespace ocudu

@@ -1,0 +1,116 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/support/file_tensor.h  (69 lines)
+//
+// INTERFACE HEADER — include/ocudu/support
+// Support library interface headers (~131 files): task_executor (the abstract interface every thread pool implements — just a defer() method), timer_manager and unique_timer (the central timer abstraction), io_broker (non-blocking I/O), signal_observer/signal_dispatcher, byte_buffer and byte_buffer_slice interfaces, config_parsers, cli11_utils, engineering_notation formatter, async_task and async_task_runner, stop_event and stop_token, and many more general-purpose C++ utilities.
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+#pragma once
+
+
+#include "ocudu/adt/tensor.h"
+#include "ocudu/support/file_vector.h"
+
+
+namespace ocudu {
+
+/// \brief Binary file input interface for data with multiple dimensions.
+///
+/// Allows reading values of type \c T with \c NDIMS dimensions from a binary file.
+///
+/// \tparam NDIMS      Number of dimensions of the data.
+/// \tparam T          Data type.
+/// \tparam Index_type Data type used for representing dimension indexes.
+
+/// \brief Binary file input interface for data with multiple dimensions.
+///
+/// Allows reading values of type \c T with \c NDIMS dimensions from a binary file.
+///
+/// \tparam NDIMS      Number of dimensions of the data.
+/// \tparam T          Data type.
+/// \tparam Index_type Data type used for representing dimension indexes.
+template <unsigned NDIMS, typename T, typename Index_type = unsigned>
+class file_tensor
+{
+  const char*                 file_name;
+  std::array<unsigned, NDIMS> dimension_sizes;
+  openmode                    op;
+
+
+public:
+  /// \brief Constructor.
+  ///
+  /// Sets the name and the mode (default is \e read-only) of the binary file, as well as the data dimensions. No
+  /// operations are performed on the file.
+  ///
+  /// \param[in] filename  Input file name.
+  /// \param[in] dim_sizes Array describing the data dimensions.
+  /// \param[in] op_       File opening mode.
+  /// \brief Constructor.
+  ///
+  /// Sets the name and the mode (default is \e read-only) of the binary file, as well as the data dimensions. No
+  /// operations are performed on the file.
+  ///
+  /// \param[in] filename  Input file name.
+  /// \param[in] dim_sizes Array describing the data dimensions.
+  /// \param[in] op_       File opening mode.
+  file_tensor(const char* filename, const std::array<unsigned, NDIMS>& dim_sizes, openmode op_ = openmode::read_only) :
+    file_name(filename), dimension_sizes(dim_sizes), op(op_)
+  {
+  }
+
+  /// Returns the file name.
+
+  /// Returns the file name.
+  const char* get_file_name() const { return file_name; }
+
+  /// \brief Reads the file.
+  ///
+  /// The contents of the file are dumped to a \c dynamic_tensor using the dimensions set during construction. The file
+  /// is closed when the operation is completed. \warning An exception arises if the file cannot be opened or if the
+  /// write-only open mode was specified at creation.
+
+  /// \brief Reads the file.
+  ///
+  /// The contents of the file are dumped to a \c dynamic_tensor using the dimensions set during construction. The file
+  /// is closed when the operation is completed. \warning An exception arises if the file cannot be opened or if the
+  /// write-only open mode was specified at creation.
+  dynamic_tensor<NDIMS, T, Index_type> read() const
+  {
+    report_fatal_error_if_not(op != openmode::write_only, "The file_vector was created with write-only permissions.");
+    std::ifstream binary_file(file_name, std::ios::in | std::ios::binary);
+
+
+    report_fatal_error_if_not(binary_file.is_open(), "Error opening file '{}'. {}.", file_name, ::strerror(errno));
+
+
+    dynamic_tensor<NDIMS, T, Index_type> read_data(dimension_sizes);
+    span<T>                              flat_tensor_view(read_data.get_data());
+
+
+    T read_value;
+    while (binary_file.read(reinterpret_cast<char*>(&read_value), sizeof(T))) {
+      flat_tensor_view.front() = read_value;
+      flat_tensor_view         = flat_tensor_view.last(flat_tensor_view.size() - 1);
+    }
+
+
+    report_fatal_error_if_not(flat_tensor_view.size() == 0, "Not all tensor elements have been filled.");
+
+
+    return read_data;
+  }
+};
+
+
+} // namespace ocudu

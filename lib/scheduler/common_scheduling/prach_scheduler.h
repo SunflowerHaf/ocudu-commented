@@ -1,0 +1,99 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: lib/scheduler/common_scheduling/prach_scheduler.h  (59 lines)
+//
+// LIBRARY: lib/scheduler
+// NR downlink/uplink scheduler (~200 files, ~44k lines). Implements: per-UE DL/UL grant allocation, PDCCH aggregation-level selection, PUCCH resource assignment, HARQ process tracking, time-domain resource allocation, proportional-fair and round-robin policies, slice-aware scheduling, and the inter-slot scheduling pipeline.
+//
+// This file is part of the above library. See library comment for context.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+#include "../cell/resource_grid.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/prach/prach_time_mapping.h"
+#include "ocudu/ran/slot_point.h"
+
+
+namespace ocudu {
+
+
+class prach_scheduler
+{
+public:
+  explicit prach_scheduler(const cell_configuration& cfg_);
+
+  /// Allocate RACH PDUs for the given slot.
+
+  /// Allocate RACH PDUs for the given slot.
+  void run_slot(cell_resource_allocator& res_grid);
+
+
+  void stop();
+
+
+private:
+  // [Implementation-defined] This is the maximum number of slots per PRACH preamble. It's obtained by considering the
+  // longest preamble length (which can be derived from Table 6.3.3.1-1, TS 38.211 for Format 2) and the shortest slot
+  // duration currently supported by the GNB, which is 0.5ms for SCS 30KHz.
+  // [Implementation-defined] This is the maximum number of slots per PRACH preamble. It's obtained by considering the
+  // longest preamble length (which can be derived from Table 6.3.3.1-1, TS 38.211 for Format 2) and the shortest slot
+  // duration currently supported by the GNB, which is 0.5ms for SCS 30KHz.
+  static constexpr unsigned MAX_SLOTS_PER_PRACH = 7;
+
+
+  struct cached_prach_occasion {
+    /// RB x symbol resources used for the PRACH.
+    /// RB x symbol resources used for the PRACH.
+    static_vector<grant_info, MAX_SLOTS_PER_PRACH> grant_list;
+    /// Pre-generated PRACH occasion.
+    /// Pre-generated PRACH occasion.
+    prach_occasion_info occasion;
+  };
+
+
+  const rach_config_common& rach_cfg_common() const
+  {
+    return *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+  }
+
+  /// \brief Performs PRACH allocation for this slot.
+  ///
+  /// One PRACH PDU per preamble for long preambles, and 1 or 2 PRACH PDUs for short preambles depending on
+  /// prach_length_slots. In the case of short preamble, when the burst of PRACH opportunities spans over 2 (SCS common)
+  /// slots,  we allocate a PRACH PDU for each of these 2 slots, as expected from the scheduler output interface.
+
+  /// \brief Performs PRACH allocation for this slot.
+  ///
+  /// One PRACH PDU per preamble for long preambles, and 1 or 2 PRACH PDUs for short preambles depending on
+  /// prach_length_slots. In the case of short preamble, when the burst of PRACH opportunities spans over 2 (SCS common)
+  /// slots,  we allocate a PRACH PDU for each of these 2 slots, as expected from the scheduler output interface.
+  void allocate_slot_prach_pdus(cell_resource_allocator& res_grid, slot_point sl);
+
+
+  const cell_configuration& cell_cfg;
+  ocudulog::basic_logger&   logger;
+
+
+  bool first_slot_ind = true;
+  /// Pre-generated PRACH occasions.
+  /// Pre-generated PRACH occasions.
+  static_vector<cached_prach_occasion, MAX_PRACH_OCCASIONS_PER_SLOT> cached_prachs;
+  /// Helper to determine slot positioning of the PRACH preambles.
+  /// Helper to determine slot positioning of the PRACH preambles.
+  prach_helper::preamble_slot_mapping td_mapper;
+};
+
+
+} // namespace ocudu

@@ -1,0 +1,77 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: lib/phy/lower/processors/downlink/downlink_processor_factories.cpp  (54 lines)
+//
+// DIRECTORY: lib/phy/lower
+// Lower physical layer: real-time baseband processing. Converts the frequency-domain resource grid (output of the upper PHY) into time-domain IQ samples for transmission, and the reverse on uplink. Contains: OFDM modulator and demodulator (including CP insertion/removal and phase rotation), the PRACH demodulator, the real-time processing loop (receives slot indications from the RU and drives the entire baseband pipeline), the amplitude controller, CFO compensator, and PDSCH/PUSCH/PUCCH/PRACH processor pipelines.
+//
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_factories.h"
+#include "downlink_processor_impl.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_factories.h"
+
+
+using namespace ocudu;
+
+
+namespace {
+
+
+class lower_phy_downlink_processor_factory_sw : public lower_phy_downlink_processor_factory
+{
+public:
+  lower_phy_downlink_processor_factory_sw(std::shared_ptr<pdxch_processor_factory> pdxch_proc_factory_) :
+    pdxch_proc_factory(std::move(pdxch_proc_factory_))
+  {
+    ocudu_assert(pdxch_proc_factory, "Invalid PDxCH processor factory.");
+  }
+
+
+  std::unique_ptr<lower_phy_downlink_processor> create(const downlink_processor_configuration& config,
+                                                       task_executor& modulation_executor) override
+  {
+    pdxch_processor_configuration pdxch_proc_config = {.cp             = config.cp,
+                                                       .scs            = config.scs,
+                                                       .srate          = config.rate,
+                                                       .bandwidth_rb   = config.bandwidth_prb,
+                                                       .center_freq_Hz = config.center_frequency_Hz,
+                                                       .nof_tx_ports   = config.nof_tx_ports};
+
+
+    downlink_processor_baseband_configuration baseband_config = {.sector_id    = config.sector_id,
+                                                                 .scs          = config.scs,
+                                                                 .cp           = config.cp,
+                                                                 .rate         = config.rate,
+                                                                 .nof_tx_ports = config.nof_tx_ports,
+                                                                 .nof_slot_tti_in_advance =
+                                                                     config.nof_slot_tti_in_advance};
+
+
+    return std::make_unique<downlink_processor_impl>(pdxch_proc_factory->create(pdxch_proc_config, modulation_executor),
+                                                     baseband_config);
+  }
+
+
+private:
+  std::shared_ptr<pdxch_processor_factory> pdxch_proc_factory;
+};
+
+
+} // namespace
+
+
+std::shared_ptr<lower_phy_downlink_processor_factory>
+ocudu::create_downlink_processor_factory_sw(std::shared_ptr<pdxch_processor_factory> pdxch_proc_factory)
+{
+  return std::make_shared<lower_phy_downlink_processor_factory_sw>(std::move(pdxch_proc_factory));
+}

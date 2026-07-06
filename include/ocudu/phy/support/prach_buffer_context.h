@@ -1,0 +1,134 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/phy/support/prach_buffer_context.h  (74 lines)
+//
+// INTERFACE HEADER — include/ocudu/phy
+// Physical layer interface headers (~233 files): the largest include tree. Contains: upper_phy_rx_symbol_handler and upper_phy_rg_gateway (the DL/UL boundary between upper and lower PHY), resource_grid (the frequency-domain IQ sample grid), channel processor interfaces (PDSCH, PUSCH, PUCCH, PRACH, SRS processors), DFT interface, channel estimation interfaces, LDPC encoder/decoder interfaces, rate-matcher interfaces, modulator/demodulator interfaces, and all the supporting data types (resource_element_mapping, re_buffer, modulation_scheme, etc.).
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/phy/antenna_ports.h"
+#include "ocudu/ran/prach/prach_format_type.h"
+#include "ocudu/ran/prach/restricted_set_config.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+
+
+namespace ocudu {
+
+/// \brief Collects PRACH time and frequency mapping parameters.
+///
+/// It contains the necessary parameters for the lower PHY to capture and demodulate the PRACH sequences. Also, it
+/// provides the upper PHY with the necessary information to perform the sequence detection.
+
+/// \brief Collects PRACH time and frequency mapping parameters.
+///
+/// It contains the necessary parameters for the lower PHY to capture and demodulate the PRACH sequences. Also, it
+/// provides the upper PHY with the necessary information to perform the sequence detection.
+struct prach_buffer_context {
+  /// Port identifier within the sector.
+  /// Port identifier within the sector.
+  static_vector<uint8_t, MAX_PORTS> ports;
+  /// Slot context within the system frame.
+  /// Slot context within the system frame.
+  slot_point slot;
+  /// \brief Uplink resource grid size in PRBs.
+  ///
+  /// Corresponds to parameter \f$N_{grid}^{size,\mu}\f$ in TS38.211 Section 5.3.2. The number of PRBs is computed
+  /// assuming a subcarrier spacing equal to \c pusch_scs.
+  /// \brief Uplink resource grid size in PRBs.
+  ///
+  /// Corresponds to parameter \f$N_{grid}^{size,\mu}\f$ in TS38.211 Section 5.3.2. The number of PRBs is computed
+  /// assuming a subcarrier spacing equal to \c pusch_scs.
+  uint16_t nof_prb_ul_grid;
+  /// Root sequence index {0, ..., 837}.
+  /// Root sequence index {0, ..., 837}.
+  uint16_t root_sequence_index;
+  /// \brief Offset, in PRBs, between Point A and the PRB overlapping with the lowest RE of the first frequency-domain
+  /// PRACH occasion.
+  ///
+  /// Corresponds to parameter \f$k_1/N_{\textup{sc}}^{\textup{RB}}\f$ in TS38.211 Section 5.3.2. The number of PRBs is
+  /// computed assuming a subcarrier spacing equal to \c pusch_scs.
+  /// \brief Offset, in PRBs, between Point A and the PRB overlapping with the lowest RE of the first frequency-domain
+  /// PRACH occasion.
+  ///
+  /// Corresponds to parameter \f$k_1/N_{\textup{sc}}^{\textup{RB}}\f$ in TS38.211 Section 5.3.2. The number of PRBs is
+  /// computed assuming a subcarrier spacing equal to \c pusch_scs.
+  uint16_t rb_offset;
+  /// Sector identifier.
+  /// Sector identifier.
+  uint8_t sector;
+  /// \brief OFDM symbol index within the slot that marks the start of the acquisition window for the first time-domain
+  /// PRACH occasion.
+  ///
+  /// Here, OFDM symbol indexing assumes a subcarrier spacing equal to \c pusch_scs.
+  /// \brief OFDM symbol index within the slot that marks the start of the acquisition window for the first time-domain
+  /// PRACH occasion.
+  ///
+  /// Here, OFDM symbol indexing assumes a subcarrier spacing equal to \c pusch_scs.
+  uint8_t start_symbol;
+  /// Preamble format.
+  /// Preamble format.
+  prach_format_type format;
+  /// \brief Number of PRACH time-domain occasions within the slot.
+  ///
+  /// Corresponds to parameter \f$N_\textup{t}^\textup{RA,slot}\f$ as per TS38.211 Section 5.3.2. It is selected from
+  /// TS38.211 Tables 6.3.3.2-2, 6.3.3.2-3 and 6.3.3.2-4.
+  ///
+  /// Possible values are from one to seven. Set to one for long preambles.
+  /// \brief Number of PRACH time-domain occasions within the slot.
+  ///
+  /// Corresponds to parameter \f$N_\textup{t}^\textup{RA,slot}\f$ as per TS38.211 Section 5.3.2. It is selected from
+  /// TS38.211 Tables 6.3.3.2-2, 6.3.3.2-3 and 6.3.3.2-4.
+  ///
+  /// Possible values are from one to seven. Set to one for long preambles.
+  uint8_t nof_td_occasions;
+  /// \brief Number of PRACH frequency-domain occasions for each of the time-domain occasion.
+  ///
+  /// Corresponds to the higher layer parameter \e msg1-FDM (TS38.331 Section 6.3.2, Information Element \e
+  /// RACH-ConfigGeneric). Possible values are 1, 2, 4 and 8.
+  /// \brief Number of PRACH frequency-domain occasions for each of the time-domain occasion.
+  ///
+  /// Corresponds to the higher layer parameter \e msg1-FDM (TS38.331 Section 6.3.2, Information Element \e
+  /// RACH-ConfigGeneric). Possible values are 1, 2, 4 and 8.
+  uint8_t nof_fd_occasions;
+  /// PUSCH subcarrier spacing, parameter \f$\mu\f$ in TS38.211 Section 5.3.2.
+  /// PUSCH subcarrier spacing, parameter \f$\mu\f$ in TS38.211 Section 5.3.2.
+  subcarrier_spacing pusch_scs;
+  /// Restricted set configuration.
+  /// Restricted set configuration.
+  restricted_set_config restricted_set;
+  /// Zero-correlation zone configuration index to calculate \f$N_{CS}\f$ as per TS38.211 Section 6.3.3.1. Range {0,
+  /// ..., 15}.
+  /// Zero-correlation zone configuration index to calculate \f$N_{CS}\f$ as per TS38.211 Section 6.3.3.1. Range {0,
+  /// ..., 15}.
+  uint8_t zero_correlation_zone;
+  /// Start of preamble logical index to monitor the PRACH occasions signaled in this slot. Range {0, ..., 63}.
+  /// Start of preamble logical index to monitor the PRACH occasions signaled in this slot. Range {0, ..., 63}.
+  uint8_t start_preamble_index;
+  /// \brief Number of preamble indices to monitor {1, ..., 64}.
+  ///
+  /// The sum <tt>start_preamble_index + nof_preamble_indices</tt> should not exceed 64.
+  /// \brief Number of preamble indices to monitor {1, ..., 64}.
+  ///
+  /// The sum <tt>start_preamble_index + nof_preamble_indices</tt> should not exceed 64.
+  uint8_t nof_preamble_indices;
+};
+
+
+} // namespace ocudu

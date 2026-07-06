@@ -1,0 +1,61 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/ran/sch/sch_constants.h  (28 lines)
+//
+// INTERFACE HEADER — include/ocudu/ran
+// RAN types and utilities (~250 files): the single most widely included tree. Contains everything RAN-specific that is not layer-specific: slot_point and slot_point_extended, ARFCN and frequency helpers, NR band definitions and lookup functions, cell identity types (PCI, NCI, CGI, PLMN, TAC), QoS types (5QI, S-NSSAI), resource block types (PRB, CRB, VRB, BWP), PDSCH/PUSCH/PUCCH resource configuration types, TDD pattern types, HARQ types, MCS tables and helpers, PRACH configuration tables, SSB configuration types, MIMO layer types, subcarrier spacing types, and hundreds of supporting enums and constants drawn directly from 3GPP TS 38.211/212/213/214/321/322/331.
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+#include "ocudu/support/units.h"
+
+
+namespace ocudu {
+
+/// \brief Maximum segment length.
+///
+/// This is given by the maximum lifting size (i.e., 384) times the maximum number of information bits in base graph
+/// BG1 (i.e., 22), as per TS38.212 Section 5.2.2.
+
+/// \brief Maximum segment length.
+///
+/// This is given by the maximum lifting size (i.e., 384) times the maximum number of information bits in base graph
+/// BG1 (i.e., 22), as per TS38.212 Section 5.2.2.
+constexpr units::bits MAX_SEG_LENGTH{22 * 384};
+
+/// \brief Maximum number of segments per transport block.
+///
+/// It assumes 156 resource elements for a maximum of 275 PRB, four layers and eight bits per RE.
+
+/// \brief Maximum number of segments per transport block.
+///
+/// It assumes 156 resource elements for a maximum of 275 PRB, four layers and eight bits per RE.
+constexpr unsigned MAX_NOF_SEGMENTS = (156 * 275 * 4 * 8) / MAX_SEG_LENGTH.value();
+
+/// \brief Default \f$TBS_{LBRM}\f$.
+///
+/// Transport block size calculated as per TS38.212 Section 5.4.2.1, parameter \f$TBS_{LBRM}\f$ for 256-QAM, four
+/// layers, 273 resource blocks, and maximum rate of \f$948 / 1024\f$.
+
+/// \brief Default \f$TBS_{LBRM}\f$.
+///
+/// Transport block size calculated as per TS38.212 Section 5.4.2.1, parameter \f$TBS_{LBRM}\f$ for 256-QAM, four
+/// layers, 273 resource blocks, and maximum rate of \f$948 / 1024\f$.
+constexpr units::bytes tbs_lbrm_default = units::bytes(159749);
+
+
+} // namespace ocudu

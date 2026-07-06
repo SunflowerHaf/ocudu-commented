@@ -1,0 +1,232 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
+/// \file
+/// \brief Complex normal distribution.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/support/math/complex_normal_random.h  (147 lines)
+//
+// INTERFACE HEADER — include/ocudu/support
+// Support library interface headers (~131 files): task_executor (the abstract interface every thread pool implements — just a defer() method), timer_manager and unique_timer (the central timer abstraction), io_broker (non-blocking I/O), signal_observer/signal_dispatcher, byte_buffer and byte_buffer_slice interfaces, config_parsers, cli11_utils, engineering_notation formatter, async_task and async_task_runner, stop_event and stop_token, and many more general-purpose C++ utilities.
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+/// \file
+/// \brief Complex normal distribution.
+
+#pragma once
+
+
+#include "ocudu/adt/complex.h"
+#include "ocudu/support/ocudu_assert.h"
+#include <random>
+
+
+namespace ocudu {
+
+/// \brief Complex normal distribution.
+///
+/// Generates random complex numbers according to the [complex normal (or Gaussian)
+/// random number distribution](https://en.wikipedia.org/wiki/Complex_normal_distribution), circularly symmetric when
+/// centered: the real and imaginary parts of the generated numbers are, after centering, independent and identically
+/// distributed real-valued normal random variables.
+///
+/// \tparam ComplexType Complex type of the generated random values.
+
+/// \brief Complex normal distribution.
+///
+/// Generates random complex numbers according to the [complex normal (or Gaussian)
+/// random number distribution](https://en.wikipedia.org/wiki/Complex_normal_distribution), circularly symmetric when
+/// centered: the real and imaginary parts of the generated numbers are, after centering, independent and identically
+/// distributed real-valued normal random variables.
+///
+/// \tparam ComplexType Complex type of the generated random values.
+template <typename ComplexType = cf_t>
+class complex_normal_distribution
+{
+  // NB: complex types are always floating point types.
+  // NB: complex types are always floating point types.
+  static_assert(is_complex<ComplexType>::value, "result_type must be a complex floating point type.");
+
+
+public:
+  /// Type of the generated complex numbers.
+  /// Type of the generated complex numbers.
+  using result_type = ComplexType;
+  /// Type of the standard deviation, as well as of the real and imaginary parts.
+  /// Type of the standard deviation, as well as of the real and imaginary parts.
+  using stddev_type = typename ComplexType::value_type;
+
+  /// \brief Parameter set.
+  ///
+  /// A complex normal distribution is parametrized by its mean and its standard deviation (the square root of the
+  /// variance).
+
+  /// \brief Parameter set.
+  ///
+  /// A complex normal distribution is parametrized by its mean and its standard deviation (the square root of the
+  /// variance).
+  struct param_type {
+    using distribution_type = complex_normal_distribution<ComplexType>;
+
+    /// Default constructor (zero mean and unitary variance).
+
+    /// Default constructor (zero mean and unitary variance).
+    param_type() : param_type(ComplexType(0, 0)) {}
+
+    /// \brief Constructor: Set mean and standard deviation.
+    ///
+    /// \param[in] m   Distribution mean.
+    /// \param[in] sd  Distribution standard deviation, defaults to 1 if omitted. Must be positive valued.
+
+    /// \brief Constructor: Set mean and standard deviation.
+    ///
+    /// \param[in] m   Distribution mean.
+    /// \param[in] sd  Distribution standard deviation, defaults to 1 if omitted. Must be positive valued.
+    explicit param_type(result_type m, stddev_type sd = stddev_type(1)) : mean_v(m), stddev_v(sd)
+    {
+      ocudu_assert(stddev_v > stddev_type(0), "Standard deviation should be positive, given {}.", stddev_v);
+    }
+
+    /// Returns the mean.
+
+    /// Returns the mean.
+    result_type mean() const { return mean_v; }
+
+    /// Returns the standard deviation.
+
+    /// Returns the standard deviation.
+    stddev_type stddev() const { return stddev_v; }
+
+    /// Checks whether two parameter sets are the same.
+
+    /// Checks whether two parameter sets are the same.
+    friend bool operator==(const param_type& p1, const param_type& p2)
+    {
+      return ((p1.mean_v == p2.mean_v) && (p1.stddev_v == p2.stddev_v));
+    }
+
+    /// Checks whether two parameter sets are different.
+
+    /// Checks whether two parameter sets are different.
+    friend bool operator!=(const param_type& p1, const param_type& p2) { return !(p1 == p2); }
+
+
+  private:
+    result_type mean_v;
+    stddev_type stddev_v;
+  };
+
+  /// Default constructor (standard complex normal with zero mean and unitary variance).
+
+  /// Default constructor (standard complex normal with zero mean and unitary variance).
+  complex_normal_distribution() : complex_normal_distribution(0.0) {}
+
+  /// Constructor: sets the distribution parameters to the given values.
+
+  /// Constructor: sets the distribution parameters to the given values.
+  explicit complex_normal_distribution(result_type mean_v, stddev_type stddev_v = stddev_type(1)) :
+    parameters(mean_v, stddev_v)
+  {
+  }
+
+  /// Constructor: sets the distribution parameters to the given parameter set.
+
+  /// Constructor: sets the distribution parameters to the given parameter set.
+  explicit complex_normal_distribution(const param_type& params) : parameters(params) {}
+
+  /// Resets the internal state of the distribution.
+
+  /// Resets the internal state of the distribution.
+  void reset() { real_normal.reset(); }
+
+  /// Returns the distribution mean.
+
+  /// Returns the distribution mean.
+  result_type mean() const { return parameters.mean(); }
+
+  /// Returns the distribution standard deviation.
+
+  /// Returns the distribution standard deviation.
+  stddev_type stddev() const { return parameters.stddev(); }
+
+  /// Returns the distribution parameter set.
+
+  /// Returns the distribution parameter set.
+  param_type param() const { return parameters; }
+
+  /// Sets the distribution parameters to the given parameter set.
+
+  /// Sets the distribution parameters to the given parameter set.
+  void param(const param_type& pp) { parameters = pp; }
+
+  /// \brief Generates the next random number in the distribution.
+
+  /// \brief Generates the next random number in the distribution.
+  template <typename UniformRandomNumberGenerator>
+  result_type operator()(UniformRandomNumberGenerator& urng)
+  {
+    return this->operator()(urng, parameters);
+  }
+
+  /// \brief Generates the next random number in the distribution with a different parameter set.
+
+  /// \brief Generates the next random number in the distribution with a different parameter set.
+  template <typename UniformRandomNumberGenerator>
+  result_type operator()(UniformRandomNumberGenerator& urng, const param_type& pp)
+  {
+    // Square root of 1/2, for variance normalization.
+    // Square root of 1/2, for variance normalization.
+    static const stddev_type SQRT1_2 = 1 / std::sqrt(2.0);
+
+
+    result_type tmp(real_normal(urng), real_normal(urng));
+    return (tmp * pp.stddev() * SQRT1_2 + pp.mean());
+  }
+
+  /// Checks whether two complex normal distributions are the same.
+
+  /// Checks whether two complex normal distributions are the same.
+  template <typename ComplexType1>
+  friend bool operator==(const complex_normal_distribution<ComplexType1>& distr1,
+                         const complex_normal_distribution<ComplexType1>& distr2);
+
+
+private:
+  /// Internal parameter set of the distribution.
+  /// Internal parameter set of the distribution.
+  param_type parameters;
+  /// Real-valued normal distribution used to generate real and imaginary parts.
+  /// Real-valued normal distribution used to generate real and imaginary parts.
+  std::normal_distribution<stddev_type> real_normal = {};
+};
+
+// Declared as friend inside complex_normal_distribution.
+
+// Declared as friend inside complex_normal_distribution.
+template <typename ComplexType1>
+bool operator==(const complex_normal_distribution<ComplexType1>& distr1,
+                const complex_normal_distribution<ComplexType1>& distr2)
+{
+  return ((distr1.parameters == distr2.parameters) && (distr1.real_normal == distr2.real_normal));
+}
+
+/// Checks whether two complex normal distributions are different.
+
+/// Checks whether two complex normal distributions are different.
+template <typename ComplexType>
+bool operator!=(const complex_normal_distribution<ComplexType>& distr1,
+                const complex_normal_distribution<ComplexType>& distr2)
+{
+  return !(distr1 == distr2);
+}
+
+
+} // namespace ocudu

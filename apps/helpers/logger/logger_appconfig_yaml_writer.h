@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// FILE: helpers/logger/logger_appconfig_yaml_writer.h
+// Declares fill_logger_appconfig_in_yaml_schema() for the print-effective-config feature.
+#pragma once
+
+#include <yaml-cpp/yaml.h>
+
+namespace ocudu {
+
+struct logger_appconfig;
+
+/// Fills the given node with the logger application configuration values.
+void fill_logger_appconfig_in_yaml_schema(YAML::Node& node, const logger_appconfig& config);
+
+} // namespace ocudu

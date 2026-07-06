@@ -1,0 +1,21 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// FILE: helpers/f1u/f1u_cli11_schema.h
+// Declares configure_cli11_f1u_sockets_args() — registers F1-U socket config
+// fields (bind/peer port, per-slice UDP settings) with the CLI11 parser.
+#pragma once
+
+#include "CLI/CLI11.hpp"
+
+namespace ocudu {
+
+struct f1u_sockets_appconfig;
+
+/// Configures the given CLI11 application with the F1U sockets application configuration schema.
+void configure_cli11_f1u_sockets_args(CLI::App& app, f1u_sockets_appconfig& f1u_params);
+
+} // namespace ocudu

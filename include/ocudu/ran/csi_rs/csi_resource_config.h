@@ -1,0 +1,108 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/ran/csi_rs/csi_resource_config.h  (67 lines)
+//
+// INTERFACE HEADER — include/ocudu/ran
+// RAN types and utilities (~250 files): the single most widely included tree. Contains everything RAN-specific that is not layer-specific: slot_point and slot_point_extended, ARFCN and frequency helpers, NR band definitions and lookup functions, cell identity types (PCI, NCI, CGI, PLMN, TAC), QoS types (5QI, S-NSSAI), resource block types (PRB, CRB, VRB, BWP), PDSCH/PUSCH/PUCCH resource configuration types, TDD pattern types, HARQ types, MCS tables and helpers, PRACH configuration tables, SSB configuration types, MIMO layer types, subcarrier spacing types, and hundreds of supporting enums and constants drawn directly from 3GPP TS 38.211/212/213/214/321/322/331.
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/bwp/bwp_id.h"
+#include "ocudu/ran/csi_rs/csi_rs_constants.h"
+#include "ocudu/ran/csi_rs/csi_rs_id.h"
+#include <variant>
+
+
+namespace ocudu {
+
+/// \brief CSI-ResourceConfigId is used to identify a CSI-ResourceConfig.
+/// \remark See TS 38.331, \c CSI-ResourceConfigId.
+
+/// \brief CSI-ResourceConfigId is used to identify a CSI-ResourceConfig.
+/// \remark See TS 38.331, \c CSI-ResourceConfigId.
+enum csi_res_config_id_t : uint8_t {
+  MIN_CSI_RESOURCE_CONFIG_ID   = 0,
+  MAX_CSI_RESOURCE_CONFIG_ID   = 111,
+  MAX_NOF_CSI_RESOURCE_CONFIGS = 112,
+};
+
+/// CSI-ResourceConfig defines a group of one or more NZP-CSI-RS-ResourceSet, CSI-IM-ResourceSet and/or
+/// CSI-SSB-ResourceSet.
+/// \remark See TS 38.331, \c CSI-ResourceConfig.
+
+/// CSI-ResourceConfig defines a group of one or more NZP-CSI-RS-ResourceSet, CSI-IM-ResourceSet and/or
+/// CSI-SSB-ResourceSet.
+/// \remark See TS 38.331, \c CSI-ResourceConfig.
+struct csi_resource_config {
+  /// List of references to CSI-IM resources used for beam measurement and reporting in a CSI-RS resource set. Contains
+  /// up to maxNrofCSI-IM-ResourceSetsPerConfig resource sets if resourceType is 'aperiodic' and 1 otherwise.
+  /// List of references to CSI-IM resources used for beam measurement and reporting in a CSI-RS resource set. Contains
+  /// up to maxNrofCSI-IM-ResourceSetsPerConfig resource sets if resourceType is 'aperiodic' and 1 otherwise.
+  using csi_im_resource_set_list =
+      static_vector<csi_im_res_set_id_t, MAX_NOF_CSI_IM_RESOURCE_SETS_PER_CSI_RESOURCE_CONFIG>;
+
+
+  struct nzp_csi_rs_ssb {
+    /// List of references to NZP CSI-RS resources used for beam measurement and reporting in a CSI-RS resource set.
+    /// Contains up to maxNrofNZP-CSI-RS-ResourceSetsPerConfig resource sets if resourceType is 'aperiodic' and 1
+    /// otherwise.
+    /// List of references to NZP CSI-RS resources used for beam measurement and reporting in a CSI-RS resource set.
+    /// Contains up to maxNrofNZP-CSI-RS-ResourceSetsPerConfig resource sets if resourceType is 'aperiodic' and 1
+    /// otherwise.
+    static_vector<nzp_csi_rs_res_set_id_t, MAX_NOF_NZP_CSI_RS_RESOURCE_SETS_PER_CSI_RESOURCE_CONFIG>
+        nzp_csi_rs_res_set_list;
+    /// List of references to SSB resources used for beam measurement and reporting in a CSI-RS resource set.
+    /// List of references to SSB resources used for beam measurement and reporting in a CSI-RS resource set.
+    static_vector<csi_ssb_res_set_id_t, MAX_NOF_CSI_SSB_RESOURCE_SETS_PER_CSI_RESOURCE_CONFIG> csi_ssb_res_set_list;
+
+
+    bool operator==(const nzp_csi_rs_ssb& rhs) const
+    {
+      return nzp_csi_rs_res_set_list == rhs.nzp_csi_rs_res_set_list && csi_ssb_res_set_list == rhs.csi_ssb_res_set_list;
+    }
+    bool operator!=(const nzp_csi_rs_ssb& rhs) const { return !(rhs == *this); }
+  };
+
+  /// Time domain behavior of resource configuration. It does not apply to resources provided in the
+  /// csi-SSB-ResourceSetList.
+  /// \remark See TS 38.214, clause 5.2.1.2 and TS 38.331, \c CSI-ResourceConfig.
+
+  /// Time domain behavior of resource configuration. It does not apply to resources provided in the
+  /// csi-SSB-ResourceSetList.
+  /// \remark See TS 38.214, clause 5.2.1.2 and TS 38.331, \c CSI-ResourceConfig.
+  enum class resource_type { aperiodic, semiPersistent, periodic };
+
+
+  csi_res_config_id_t                                    res_cfg_id;
+  std::variant<nzp_csi_rs_ssb, csi_im_resource_set_list> csi_rs_res_set_list;
+  /// The DL BWP which the CSI-RS associated with this CSI-ResourceConfig are located in.
+  /// The DL BWP which the CSI-RS associated with this CSI-ResourceConfig are located in.
+  bwp_id_t      bwp_id;
+  resource_type res_type;
+
+
+  bool operator==(const csi_resource_config& rhs) const
+  {
+    return res_cfg_id == rhs.res_cfg_id && csi_rs_res_set_list == rhs.csi_rs_res_set_list && bwp_id == rhs.bwp_id &&
+           res_type == rhs.res_type;
+  }
+  bool operator!=(const csi_resource_config& rhs) const { return !(rhs == *this); }
+};
+
+
+} // namespace ocudu

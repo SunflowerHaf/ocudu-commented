@@ -1,0 +1,85 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/scheduler/result/resource_block_group.h  (45 lines)
+//
+// INTERFACE HEADER — include/ocudu/scheduler
+// Scheduler interface headers: the scheduler itself (takes slot_indication, returns DL/UL grants), the scheduler-to-MAC and MAC-to-scheduler interfaces (grant notifications, CRC/UCI/BSR/SR/HARQ ACK reporting back from MAC), the scheduler configuration type, and the scheduler_metrics_notifier/scheduler_metrics_report types.
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+
+
+namespace ocudu {
+
+/// Maximum number of resource block groups per BWP.
+/// \remark See TS 38.214, Sections 5.1.2.2.1 and 6.1.2.2.1.
+
+/// Maximum number of resource block groups per BWP.
+/// \remark See TS 38.214, Sections 5.1.2.2.1 and 6.1.2.2.1.
+const size_t MAX_NOF_RBGS = 18;
+
+/// \brief RBG size types for PDSCH.
+/// \remark See TS 38.331, "rbg-Size".
+
+/// \brief RBG size types for PDSCH.
+/// \remark See TS 38.331, "rbg-Size".
+enum class rbg_size { config1, config2 };
+
+/// Nominal RBG-size (P value).
+/// \remark See TS 38.214, Sections 5.1.2.2 and 6.1.2.2.
+
+/// Nominal RBG-size (P value).
+/// \remark See TS 38.214, Sections 5.1.2.2 and 6.1.2.2.
+enum class nominal_rbg_size : unsigned { P2 = 2, P4 = 4, P8 = 8, P16 = 16 };
+
+
+inline unsigned to_nominal_rbg_size_value(nominal_rbg_size sz)
+{
+  return static_cast<unsigned>(sz);
+}
+
+/// Bitset of RBGs with size up to 18.
+
+/// Bitset of RBGs with size up to 18.
+using rbg_bitmap = bounded_bitset<MAX_NOF_RBGS, true>;
+
+/// Calculates Nominal RBG size (P) based on the BWP number of PRBs and configuration type.
+/// \remark See TS 38.214, Table 5.1.2.2.1-1 and 6.1.2.2.1-1.
+
+/// Calculates Nominal RBG size (P) based on the BWP number of PRBs and configuration type.
+/// \remark See TS 38.214, Table 5.1.2.2.1-1 and 6.1.2.2.1-1.
+nominal_rbg_size get_nominal_rbg_size(unsigned bwp_nof_prb, bool is_config_1);
+
+/// Calculates the total number of RBGs for a bandwidth part.
+/// \remark See TS 38.214, Sections 5.1.2.2.1 and 6.1.2.2.1.
+
+/// Calculates the total number of RBGs for a bandwidth part.
+/// \remark See TS 38.214, Sections 5.1.2.2.1 and 6.1.2.2.1.
+unsigned get_nof_rbgs(crb_interval bwp_rb_dims, nominal_rbg_size P);
+unsigned get_nof_rbgs(crb_interval bwp_rb_dims, bool config1_or_2);
+
+/// Calculates size of indexed RBG in number of RBs.
+/// \remark See TS 38.214, Sections 5.1.2.2.1 and 6.1.2.2.1.
+
+/// Calculates size of indexed RBG in number of RBs.
+/// \remark See TS 38.214, Sections 5.1.2.2.1 and 6.1.2.2.1.
+uint32_t get_rbg_size(crb_interval bwp_rbs, nominal_rbg_size P, uint32_t rbg_idx);
+
+
+} // namespace ocudu

@@ -1,0 +1,106 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: lib/cu_cp/ue_manager/cu_cp_ue_impl_interface.h  (61 lines)
+//
+// LIBRARY: lib/cu_cp
+// O-RAN Central Unit Control Plane core (~160 files, ~23k lines): full CU-CP implementation. Contains: CU-CP manager and UE manager, NGAP procedures (UE registration, PDU session, handover), F1AP CU-side procedures, E1AP CU-CP side, RRC procedures (setup, reconfiguration, measurement, handover), security context management, mobility manager, cell measurement manager, UE location manager, and the O-CU-CP factory.
+//
+// This file is part of the above library. See library comment for context.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+#include "../ue_security_manager/ue_security_manager_impl.h"
+#include "ocudu/nrppa/nrppa.h"
+#include "ocudu/ran/aggregate_maximum_bit_rate.h"
+#include "ocudu/ran/cu_cp_types.h"
+
+
+namespace ocudu::ocucp {
+
+// Forward declarations.
+
+// Forward declarations.
+class up_resource_manager;
+class ue_task_scheduler;
+class ue_security_manager;
+class ngap_rrc_ue_notifier;
+
+/// Common UE interface.
+
+/// Common UE interface.
+class cu_cp_ue_impl_interface
+{
+public:
+  virtual ~cu_cp_ue_impl_interface() = default;
+
+  /// \brief Get the UE index of the UE.
+
+  /// \brief Get the UE index of the UE.
+  virtual cu_cp_ue_index_t get_ue_index() const = 0;
+
+  /// \brief Get the index of the DU where the UE is connected.
+
+  /// \brief Get the index of the DU where the UE is connected.
+  virtual cu_cp_du_index_t get_du_index() const = 0;
+
+  /// \brief Get the CU-UP index of the UE.
+
+  /// \brief Get the CU-UP index of the UE.
+  virtual cu_cp_cu_up_index_t get_cu_up_index() const = 0;
+
+  /// \brief Get the XN-C peer index of the UE.
+
+  /// \brief Get the XN-C peer index of the UE.
+  virtual xnc_peer_index_t get_xnc_peer_index() const = 0;
+
+  /// \brief Get the UP resource manager of the UE.
+
+  /// \brief Get the UP resource manager of the UE.
+  virtual up_resource_manager& get_up_resource_manager() = 0;
+
+  /// \brief Get the task scheduler of the UE.
+
+  /// \brief Get the task scheduler of the UE.
+  virtual ue_task_scheduler& get_task_sched() = 0;
+
+  /// \brief Get the security manager of the UE.
+
+  /// \brief Get the security manager of the UE.
+  virtual ue_security_manager& get_security_manager() = 0;
+
+  /// \brief Get the RRC UE notifier of the UE.
+
+  /// \brief Get the RRC UE notifier of the UE.
+  virtual ngap_rrc_ue_notifier& get_ngap_rrc_ue_notifier() = 0;
+
+  /// \brief Get the measurement results of the UE.
+
+  /// \brief Get the measurement results of the UE.
+  virtual std::optional<cell_measurement_positioning_info>& get_measurement_results() = 0;
+
+  /// \brief Set UE AMBR.
+  /// \param[in] ue_ambr The AMBR to set for the UE.
+
+  /// \brief Set UE AMBR.
+  /// \param[in] ue_ambr The AMBR to set for the UE.
+  virtual void set_ue_ambr(aggregate_maximum_bit_rate_t ue_ambr) = 0;
+
+  /// \brief Get UE AMBR.
+
+  /// \brief Get UE AMBR.
+  virtual aggregate_maximum_bit_rate_t get_ue_ambr() const = 0;
+};
+
+
+} // namespace ocudu::ocucp

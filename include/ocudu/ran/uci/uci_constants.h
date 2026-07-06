@@ -1,0 +1,66 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/ran/uci/uci_constants.h  (31 lines)
+//
+// INTERFACE HEADER — include/ocudu/ran
+// RAN types and utilities (~250 files): the single most widely included tree. Contains everything RAN-specific that is not layer-specific: slot_point and slot_point_extended, ARFCN and frequency helpers, NR band definitions and lookup functions, cell identity types (PCI, NCI, CGI, PLMN, TAC), QoS types (5QI, S-NSSAI), resource block types (PRB, CRB, VRB, BWP), PDSCH/PUSCH/PUCCH resource configuration types, TDD pattern types, HARQ types, MCS tables and helpers, PRACH configuration tables, SSB configuration types, MIMO layer types, subcarrier spacing types, and hundreds of supporting enums and constants drawn directly from 3GPP TS 38.211/212/213/214/321/322/331.
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+namespace ocudu {
+
+
+namespace uci_constants {
+
+/// \brief Maximum number of UCI bits that can be multiplexed in a single message.
+///
+/// The value is deduced from the maximum number of bits that can be encoded with the polar encoder as per TS38.212
+/// Section 5.2.1.
+
+/// \brief Maximum number of UCI bits that can be multiplexed in a single message.
+///
+/// The value is deduced from the maximum number of bits that can be encoded with the polar encoder as per TS38.212
+/// Section 5.2.1.
+constexpr unsigned MAX_NOF_PAYLOAD_BITS = 1706;
+
+/// \brief Maximum number of HARQ bits that can be multiplexed in a single message.
+///
+/// The value is deduced from the maximum number of bits that can be encoded with the polar encoder as per TS38.212
+/// Section 5.2.1.
+
+/// \brief Maximum number of HARQ bits that can be multiplexed in a single message.
+///
+/// The value is deduced from the maximum number of bits that can be encoded with the polar encoder as per TS38.212
+/// Section 5.2.1.
+constexpr unsigned MAX_NOF_HARQ_BITS = MAX_NOF_PAYLOAD_BITS;
+
+/// \brief Maximum number of CSI Part 1/CSI Part 2 bits that can be multiplexed in a single message.
+///
+/// The value is deduced from the maximum number of bits that can be encoded with the polar encoder as per TS38.212
+/// Section 5.2.1.
+
+/// \brief Maximum number of CSI Part 1/CSI Part 2 bits that can be multiplexed in a single message.
+///
+/// The value is deduced from the maximum number of bits that can be encoded with the polar encoder as per TS38.212
+/// Section 5.2.1.
+constexpr unsigned MAX_NOF_CSI_PART1_OR_PART2_BITS = MAX_NOF_PAYLOAD_BITS;
+
+
+} // namespace uci_constants
+
+
+} // namespace ocudu

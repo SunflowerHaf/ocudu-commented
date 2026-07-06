@@ -1,0 +1,72 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+// =============================================================================
+// FILE: include/ocudu/ru/ru.h  (38 lines)
+//
+// INTERFACE HEADER — include/ocudu/ru
+// Radio Unit (RU) interface headers: upper_ru_dl_rg_handler (receives DL resource grids from the upper PHY for transmission), upper_ru_ul_rx_symbol_handler (delivers received IQ symbols to the upper PHY), the RU configuration interface, and the RU controller (start/stop). The split-8 RU implementation is in lib/ru/sdr; these headers define the contract.
+//
+// This file defines abstract interfaces / data types used across multiple
+// layers. Implementations live in the corresponding lib/ directory.
+// =============================================================================
+
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#pragma once
+
+
+namespace ocudu {
+
+
+class ru_controller;
+class ru_downlink_plane_handler;
+class ru_metrics_collector;
+class ru_uplink_plane_handler;
+
+/// \brief Radio Unit interface.
+///
+/// The Radio Unit interface provides downlink and uplink functionality through the uplink and downlink planes, allowing
+/// data transmission and reception using a radio. It also notifies timing events using the \ref ru_timing_notifier.
+/// Only a single Radio Unit interface should be used when operating with multiple sectors.
+
+/// \brief Radio Unit interface.
+///
+/// The Radio Unit interface provides downlink and uplink functionality through the uplink and downlink planes, allowing
+/// data transmission and reception using a radio. It also notifies timing events using the \ref ru_timing_notifier.
+/// Only a single Radio Unit interface should be used when operating with multiple sectors.
+class radio_unit
+{
+public:
+  /// Default destructor.
+  /// Default destructor.
+  virtual ~radio_unit() = default;
+
+  /// Returns the controller interface of this Radio Unit.
+
+  /// Returns the controller interface of this Radio Unit.
+  virtual ru_controller& get_controller() = 0;
+
+  /// Returns the downlink plane handler interface of this Radio Unit.
+
+  /// Returns the downlink plane handler interface of this Radio Unit.
+  virtual ru_downlink_plane_handler& get_downlink_plane_handler() = 0;
+
+  /// Returns the uplink plane interface handler of this Radio Unit.
+
+  /// Returns the uplink plane interface handler of this Radio Unit.
+  virtual ru_uplink_plane_handler& get_uplink_plane_handler() = 0;
+
+  /// Returns the metrics collector of this Radio Unit.
+
+  /// Returns the metrics collector of this Radio Unit.
+  virtual ru_metrics_collector* get_metrics_collector() = 0;
+};
+
+
+} // namespace ocudu
